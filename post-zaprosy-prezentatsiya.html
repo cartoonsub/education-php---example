@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POST /input.php HTTP/1.1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0E14;
+    --surface:#121722;
+    --surface-2:#1A2030;
+    --border:#262E40;
+    --text:#E7E9EE;
+    --text-muted:#8B93A7;
+    --accent:#8C7CFF;
+    --accent-soft:rgba(140,124,255,0.14);
+    --success:#3ECF8E;
+    --success-soft:rgba(62,207,142,0.12);
+    --danger:#F97066;
+    --danger-soft:rgba(249,112,102,0.12);
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    overflow-x:hidden;
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .reveal{ animation: rise .7s cubic-bezier(.16,1,.3,1) both; }
+  }
+  @keyframes rise{ from{opacity:0; transform:translateY(18px);} to{opacity:1; transform:translateY(0);} }
+
+  /* ---------- Progress bar ---------- */
+  .progress-track{
+    position:fixed; top:0; left:0; right:0; height:3px;
+    background:var(--border); z-index:100;
+  }
+  .progress-fill{
+    height:100%; width:0%;
+    background:linear-gradient(90deg, var(--accent), var(--success));
+    transition:width .2s ease;
+  }
+
+  /* ---------- Dot nav ---------- */
+  .dotnav{
+    position:fixed; right:22px; top:50%; transform:translateY(-50%);
+    display:flex; flex-direction:column; gap:12px; z-index:100;
+  }
+  .dotnav button{
+    width:9px; height:9px; border-radius:50%;
+    background:var(--border); border:1px solid transparent;
+    cursor:pointer; padding:0; transition:all .25s ease;
+  }
+  .dotnav button:hover{ background:var(--text-muted); }
+  .dotnav button.active{
+    background:var(--accent); transform:scale(1.35);
+    box-shadow:0 0 0 3px var(--accent-soft);
+  }
+  @media (max-width:720px){ .dotnav{display:none;} }
+
+  /* ---------- Scroller ---------- */
+  .scroller{
+    height:100vh; overflow-y:scroll; scroll-snap-type:y mandatory;
+  }
+  section{
+    min-height:100vh; width:100%;
+    scroll-snap-align:start;
+    display:flex; align-items:center; justify-content:center;
+    padding:80px 8vw 60px;
+    position:relative;
+    border-bottom:1px solid var(--border);
+  }
+  .inner{ max-width:920px; width:100%; }
+
+  /* ---------- Header line (eyebrow, styled as HTTP header) ---------- */
+  .hdr-line{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--mono); font-size:12.5px; letter-spacing:.02em;
+    color:var(--accent); background:var(--accent-soft);
+    border:1px solid rgba(140,124,255,.35);
+    padding:6px 12px; border-radius:5px; margin-bottom:26px;
+  }
+  .hdr-line .k{ color:var(--text-muted); }
+  .hdr-line.success{ color:var(--success); background:var(--success-soft); border-color:rgba(62,207,142,.35); }
+  .hdr-line.danger{ color:var(--danger); background:var(--danger-soft); border-color:rgba(249,112,102,.35); }
+
+  h1,h2{
+    font-family:var(--mono); font-weight:600; line-height:1.15;
+    letter-spacing:-0.01em;
+  }
+  h2{ font-size:clamp(28px,4vw,42px); margin-bottom:20px; }
+  .lede{ font-size:18px; color:var(--text-muted); max-width:640px; line-height:1.6; margin-bottom:8px;}
+  p{ font-size:16.5px; line-height:1.7; color:var(--text); }
+  strong{ color:var(--accent); font-weight:600;}
+
+  /* ---------- Terminal / request block ---------- */
+  .term{
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:10px; overflow:hidden; margin:20px 0;
+    box-shadow:0 20px 50px -25px rgba(0,0,0,.6);
+  }
+  .term-bar{
+    display:flex; align-items:center; gap:8px;
+    padding:10px 14px; background:var(--surface-2); border-bottom:1px solid var(--border);
+  }
+  .term-bar span{ width:9px; height:9px; border-radius:50%; background:var(--border);}
+  .term-bar .label{
+    margin-left:10px; font-family:var(--mono); font-size:12px; color:var(--text-muted);
+  }
+  .term pre{
+    font-family:var(--mono); font-size:14.5px; line-height:1.8;
+    padding:20px 22px; overflow-x:auto; color:var(--text);
+  }
+  .term pre .c{ color:var(--text-muted); font-style:italic; }
+  .term pre .m{ color:var(--accent); }
+  .term pre .s{ color:var(--success); }
+  .term pre .d{ color:var(--danger); }
+
+  /* ---------- Grid / cards ---------- */
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:24px;}
+  @media (max-width:720px){ .grid2{grid-template-columns:1fr;} }
+  .card{
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:10px; padding:22px;
+  }
+  .card h3{ font-family:var(--mono); font-size:16px; color:var(--accent); margin-bottom:10px; }
+  .card p{ font-size:15px; color:var(--text-muted); }
+  .card.warn{ border-color:rgba(249,112,102,.4); background:linear-gradient(180deg, var(--danger-soft), var(--surface)); }
+  .card.warn h3{ color:var(--danger); }
+  .card.warn p{ color:#D8B9B5; }
+
+  /* ---------- Table ---------- */
+  table{ width:100%; border-collapse:collapse; margin-top:22px; font-size:14.5px; }
+  th,td{ text-align:left; padding:11px 14px; border-bottom:1px solid var(--border); }
+  th{ font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); font-weight:500;}
+  td{ color:var(--text); }
+  td.mono, th.mono{ font-family:var(--mono); }
+  tr td:first-child{ color:var(--accent); font-family:var(--mono); white-space:nowrap; }
+
+  /* ---------- Checklist ---------- */
+  .checklist{ list-style:none; margin-top:22px; display:flex; flex-direction:column; gap:12px;}
+  .checklist li{
+    display:flex; align-items:flex-start; gap:12px;
+    font-size:15.5px; color:var(--text);
+  }
+  .checklist .box{
+    flex-shrink:0; width:20px; height:20px; margin-top:2px;
+    border:1.5px solid var(--success); border-radius:5px;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--success); font-size:13px; font-family:var(--mono);
+  }
+
+  /* ---------- Title slide ---------- */
+  .title-slide .inner{ text-align:left; }
+  .status-chip{
+    display:inline-block; font-family:var(--mono); font-size:13px;
+    color:var(--success); background:var(--success-soft);
+    border:1px solid rgba(62,207,142,.4); padding:4px 10px; border-radius:4px;
+    margin-bottom:28px; letter-spacing:.03em;
+  }
+  .title-slide h1{
+    font-size:clamp(38px, 6.5vw, 78px);
+    background:linear-gradient(180deg, #fff, #A8B0C4);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .title-slide .sub{
+    font-family:var(--mono); font-size:clamp(15px,2vw,19px); color:var(--text-muted);
+    margin-top:18px; max-width:600px; line-height:1.6;
+  }
+  .body-preview{
+    margin-top:46px; font-family:var(--mono); font-size:13.5px; color:var(--text-muted);
+    border-left:2px solid var(--border); padding-left:16px; line-height:2;
+  }
+  .body-preview b{ color:var(--text); font-weight:500; }
+
+  .scroll-hint{
+    position:absolute; bottom:34px; left:50%; transform:translateX(-50%);
+    font-family:var(--mono); font-size:12px; color:var(--text-muted);
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+  }
+  .scroll-hint .arrow{ animation:bob 1.8s ease-in-out infinite; }
+  @keyframes bob{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(6px);} }
+
+  footer.slide-foot{
+    position:absolute; bottom:28px; left:8vw; font-family:var(--mono); font-size:12px; color:var(--text-muted);
+  }
+
+  code.inline{
+    font-family:var(--mono); background:var(--surface-2); color:var(--accent);
+    padding:1px 6px; border-radius:4px; font-size:.92em; border:1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+<div class="dotnav" id="dotnav"></div>
+
+<div class="scroller" id="scroller">
+
+  <!-- SLIDE 1 — TITLE -->
+  <section id="s1" class="title-slide">
+    <div class="inner reveal">
+      <div class="status-chip">200 OK — урок готов к отправке</div>
+      <h1>POST<br>/input.php</h1>
+      <div class="sub">Как безопасно передавать данные на сервер: формы, файлы и JSON — на языке PHP.</div>
+      <div class="body-preview">
+        <div><b>Host:</b> урок-php.ru</div>
+        <div><b>Content-Type:</b> text/lesson; уровень=средний</div>
+        <div><b>Content-Length:</b> 10 слайдов</div>
+      </div>
+    </div>
+    <div class="scroll-hint"><span>прокрутите вниз</span><span class="arrow">↓</span></div>
+  </section>
+
+  <!-- SLIDE 2 — ЗАЧЕМ POST -->
+  <section id="s2">
+    <div class="inner reveal">
+      <div class="hdr-line"><span class="k">X-Topic:</span> зачем-нужен-post</div>
+      <h2>Тело запроса вместо адресной строки</h2>
+      <p class="lede">Главное правило: POST передаёт данные в <strong>теле запроса (Body)</strong>, а не в URL. Это открывает три возможности, недоступные GET-запросу.</p>
+      <div class="grid2">
+        <div class="card">
+          <h3>🔒 Чувствительные данные</h3>
+          <p>Пароли, логины, токены и ключи не попадают в логи сервера, историю браузера и кэши.</p>
+        </div>
+        <div class="card">
+          <h3>📦 Большие объёмы</h3>
+          <p>JSON с тысячами записей передаётся без ограничения длины URL.</p>
+        </div>
+        <div class="card">
+          <h3>📎 Файлы</h3>
+          <p>PDF, CSV, изображения — в виде <code class="inline">multipart/form-data</code>.</p>
+        </div>
+        <div class="card warn">
+          <h3>⚠️ Но не забывайте</h3>
+          <p>POST сам по себе не шифрует данные. Реальную защиту от перехвата даёт только HTTPS.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 3 — GET vs POST -->
+  <section id="s3">
+    <div class="inner reveal">
+      <div class="hdr-line"><span class="k">X-Topic:</span> сравнение-методов</div>
+      <h2>GET vs POST — быстрое повторение</h2>
+      <table>
+        <tr><th></th><th>GET</th><th>POST</th></tr>
+        <tr><td>Где данные</td><td>В URL (query string)</td><td>В теле запроса</td></tr>
+        <tr><td>Ограничение размера</td><td>Есть</td><td>Практически нет</td></tr>
+        <tr><td>Кэшируется браузером</td><td>Да</td><td>Нет</td></tr>
+        <tr><td>Можно в закладки</td><td>Да</td><td>Нет</td></tr>
+        <tr><td>Подходит для файлов</td><td>Нет</td><td>Да</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- SLIDE 4 — АНАТОМИЯ -->
+  <section id="s4">
+    <div class="inner reveal">
+      <div class="hdr-line"><span class="k">X-Topic:</span> анатомия-запроса</div>
+      <h2>Как выглядит POST-запрос</h2>
+      <p class="lede">URL, заголовки (Headers) и тело запроса (Body) — вот из чего он состоит.</p>
+      <div class="term">
+        <div class="term-bar"><span></span><span></span><span></span><div class="label">raw HTTP request</div></div>
+        <pre><span class="m">POST</span> /input.php HTTP/1.1  <span class="c">// метод изменился на POST</span>
+Host: mysite.ru
+User-Agent: Mozilla/5.0
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 29 <span class="c">// сколько байт весит тело</span>
+<span class="c">// пустая строка отделяет заголовки от тела</span>
+username=admin&password=12345</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 5 — CONTENT-TYPE 1 & 2 -->
+  <section id="s5">
+    <div class="inner reveal">
+      <div class="hdr-line"><span class="k">Content-Type:</span> x-www-form-urlencoded / multipart</div>
+      <h2>Content-Type: как сервер понимает формат</h2>
+      <div class="grid2">
+        <div class="card">
+          <h3>application/x-www-form-urlencoded</h3>
+          <p>Поведение по умолчанию для формы без файлов. Пробелы → <code class="inline">+</code> или <code class="inline">%20</code>.<br><br>
+          HTTP: <code class="inline">name=Alex+Smith&age=25</code><br>
+          PHP: автоматически в <code class="inline">$_POST</code></p>
+        </div>
+        <div class="card">
+          <h3>multipart/form-data</h3>
+          <p>Для файлов и тяжёлых данных. Блоки разделены уникальной строкой — <strong>boundary</strong>.<br><br>
+          Обязательно: <code class="inline">&lt;form enctype="multipart/form-data"&gt;</code></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 6 — JSON gotcha -->
+  <section id="s6">
+    <div class="inner reveal">
+      <div class="hdr-line danger"><span class="k">Content-Type:</span> application/json</div>
+      <h2>Ловушка с JSON</h2>
+      <p class="lede">PHP <strong>не умеет</strong> автоматически парсить JSON в <code class="inline">$_POST</code>. Массив останется пустым — даже если данные реально пришли в теле запроса.</p>
+      <div class="term">
+        <div class="term-bar"><span></span><span></span><span></span><div class="label">script.php</div></div>
+        <pre>$rawBody = file_get_contents(<span class="s">'php://input'</span>);
+$data = json_decode($rawBody, true);
+echo $data[<span class="s">'username'</span>]; <span class="c">// вот так — а не через $_POST</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 7 — Практика: форма и файл -->
+  <section id="s7">
+    <div class="inner reveal">
+      <div class="hdr-line"><span class="k">X-Topic:</span> практика</div>
+      <h2>Получаем данные от формы и файла</h2>
+      <div class="term">
+        <div class="term-bar"><span></span><span></span><span></span><div class="label">Сценарий 1 · обычная форма</div></div>
+        <pre>$username = $_POST[<span class="s">'username'</span>] ?? <span class="s">''</span>;
+if ($_SERVER[<span class="s">'REQUEST_METHOD'</span>] === <span class="s">'POST'</span>) {
+    echo <span class="s">"Привет, "</span> . htmlspecialchars($username);
+}</pre>
+      </div>
+      <div class="term">
+        <div class="term-bar"><span></span><span></span><span></span><div class="label">Сценарий 2 · файл (multipart)</div></div>
+        <pre>if (isset($_FILES[<span class="s">'avatar'</span>])) {
+    $file = $_FILES[<span class="s">'avatar'</span>];
+    $tmpPath = $file[<span class="s">'tmp_name'</span>];
+    $destination = __DIR__ . <span class="s">'/uploads/'</span> . $file[<span class="s">'name'</span>];
+    if (move_uploaded_file($tmpPath, $destination)) {
+        echo <span class="s">"Файл успешно загружен!"</span>;
+    }
+}</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 8 — $_FILES anatomy + error codes -->
+  <section id="s8">
+    <div class="inner reveal">
+      <div class="hdr-line"><span class="k">X-Topic:</span> _FILES-и-коды-ошибок</div>
+      <h2>Анатомия $_FILES</h2>
+      <div class="term">
+        <div class="term-bar"><span></span><span></span><span></span><div class="label">$_FILES['avatar']</div></div>
+        <pre>[
+  <span class="s">'name'</span>     => <span class="s">'photo.jpg'</span>,       <span class="c">// оригинальное имя</span>
+  <span class="s">'type'</span>     => <span class="s">'image/jpeg'</span>,      <span class="c">// MIME по мнению браузера</span>
+  <span class="s">'tmp_name'</span> => <span class="s">'/tmp/phpYzdqkD'</span>,  <span class="c">// временный путь</span>
+  <span class="s">'error'</span>    => 0,                 <span class="c">// код ошибки</span>
+  <span class="s">'size'</span>     => 12345              <span class="c">// байты</span>
+]</pre>
+      </div>
+      <table>
+        <tr><th class="mono">Код</th><th>Константа</th><th>Значение</th></tr>
+        <tr><td>0</td><td class="mono">UPLOAD_ERR_OK</td><td>всё прошло успешно</td></tr>
+        <tr><td>1</td><td class="mono">UPLOAD_ERR_INI_SIZE</td><td>превышен лимит в php.ini</td></tr>
+        <tr><td>2</td><td class="mono">UPLOAD_ERR_FORM_SIZE</td><td>превышен лимит из формы</td></tr>
+        <tr><td>3</td><td class="mono">UPLOAD_ERR_PARTIAL</td><td>файл загружен частично</td></tr>
+        <tr><td>4</td><td class="mono">UPLOAD_ERR_NO_FILE</td><td>файл не выбран</td></tr>
+        <tr><td>6</td><td class="mono">UPLOAD_ERR_NO_TMP_DIR</td><td>нет временной папки</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- SLIDE 9 — БЕЗОПАСНОСТЬ -->
+  <section id="s9">
+    <div class="inner reveal">
+      <div class="hdr-line danger"><span class="k">X-Topic:</span> безопасность-загрузок</div>
+      <h2>Загрузка файла — потенциальная уязвимость</h2>
+      <div class="grid2">
+        <div class="card warn">
+          <h3>name — опасно</h3>
+          <p>Злоумышленник может назвать файл <code class="inline">../../../etc/passwd</code> или <code class="inline">script.php</code>. Никогда не используйте его напрямую для сохранения.</p>
+        </div>
+        <div class="card warn">
+          <h3>type — не проверено</h3>
+          <p>Присылает браузер, легко подделать. Проверяйте реальный MIME-тип через <code class="inline">finfo_file()</code>.</p>
+        </div>
+      </div>
+      <div class="term" style="margin-top:22px;">
+        <div class="term-bar"><span></span><span></span><span></span><div class="label">безопасное сохранение</div></div>
+        <pre>$finfo = finfo_open(FILEINFO_MIME_TYPE);
+$realType = finfo_file($finfo, $_FILES[<span class="s">'avatar'</span>][<span class="s">'tmp_name'</span>]);
+if ($realType !== <span class="s">'image/jpeg'</span> && $realType !== <span class="s">'image/png'</span>) {
+    die(<span class="s">"Можно загружать только картинки!"</span>);
+}
+$safeName = uniqid(<span class="s">'img_'</span>, true) . <span class="s">'.jpg'</span>; <span class="c">// генерируем имя сами</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 10 — ИТОГ + ДЗ -->
+  <section id="s10">
+    <div class="inner reveal">
+      <div class="hdr-line success"><span class="k">HTTP/1.1</span> 200 OK — конец урока</div>
+      <h2>Чек-лист безопасной загрузки</h2>
+      <ul class="checklist">
+        <li><span class="box">✓</span> Проверить <code class="inline">error</code> — должен быть 0</li>
+        <li><span class="box">✓</span> Проверить размер файла на разумный лимит</li>
+        <li><span class="box">✓</span> Проверить реальный MIME-тип через Fileinfo</li>
+        <li><span class="box">✓</span> Сгенерировать безопасное имя через <code class="inline">uniqid()</code></li>
+        <li><span class="box">✓</span> Хранить файлы вне публичного корня или запретить исполнение скриптов</li>
+        <li><span class="box">✓</span> Только теперь — <code class="inline">move_uploaded_file()</code></li>
+      </ul>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  const sections = [...document.querySelectorAll('section')];
+  const scroller = document.getElementById('scroller');
+  const dotnav = document.getElementById('dotnav');
+  const progressFill = document.getElementById('progressFill');
+
+  sections.forEach((sec, i) => {
+    const btn = document.createElement('button');
+    btn.setAttribute('aria-label', 'Слайд ' + (i+1));
+    btn.addEventListener('click', () => sec.scrollIntoView({behavior:'smooth'}));
+    dotnav.appendChild(btn);
+  });
+  const dots = [...dotnav.children];
+
+  function updateActive(){
+    const scrollTop = scroller.scrollTop;
+    const total = scroller.scrollHeight - scroller.clientHeight;
+    progressFill.style.width = (total > 0 ? (scrollTop/total)*100 : 0) + '%';
+
+    let idx = 0;
+    let minDist = Infinity;
+    sections.forEach((sec, i) => {
+      const dist = Math.abs(sec.offsetTop - scrollTop);
+      if(dist < minDist){ minDist = dist; idx = i; }
+    });
+    dots.forEach((d,i) => d.classList.toggle('active', i===idx));
+  }
+  scroller.addEventListener('scroll', updateActive);
+  updateActive();
+
+  window.addEventListener('keydown', (e) => {
+    const scrollTop = scroller.scrollTop;
+    let idx = 0, minDist = Infinity;
+    sections.forEach((sec, i) => {
+      const dist = Math.abs(sec.offsetTop - scrollTop);
+      if(dist < minDist){ minDist = dist; idx = i; }
+    });
+    if(e.key === 'ArrowDown' || e.key === 'PageDown'){
+      e.preventDefault();
+      sections[Math.min(idx+1, sections.length-1)].scrollIntoView({behavior:'smooth'});
+    } else if(e.key === 'ArrowUp' || e.key === 'PageUp'){
+      e.preventDefault();
+      sections[Math.max(idx-1, 0)].scrollIntoView({behavior:'smooth'});
+    }
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Оформление профиля — JSON</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-1:#FBEDE0;
+    --bg-2:#F6DCC3;
+    --card:#FFF8EF;
+    --card-2:#FCF1E2;
+    --border:#E7D2B2;
+    --ink:#4A3A2C;
+    --ink-muted:#8C7A63;
+    --accent:#C97B63;
+    --accent-dark:#B0644D;
+    --accent-soft:#F3DCCF;
+    --sage:#8CA285;
+    --sage-soft:#E3EBDE;
+    --danger:#C4614C;
+    --ink-dark:#2E241B;
+    --radius:18px;
+    font-family:'Inter', sans-serif;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; min-height:100vh;
+    background:
+      radial-gradient(circle at 12% 8%, #FDE7CE 0%, transparent 45%),
+      radial-gradient(circle at 92% 85%, #F3D9BE 0%, transparent 50%),
+      linear-gradient(160deg, var(--bg-1), var(--bg-2));
+    color:var(--ink);
+    display:flex; align-items:flex-start; justify-content:center;
+    padding:48px 18px; gap:26px; flex-wrap:wrap;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0; pointer-events:none; opacity:.5; z-index:0;
+    background-image:
+      radial-gradient(circle, #E7C79E 1.5px, transparent 1.5px),
+      radial-gradient(circle, #E7C79E 1.5px, transparent 1.5px);
+    background-size:120px 120px, 160px 160px;
+    background-position:0 0, 60px 90px;
+  }
+
+  .wrap{ position:relative; z-index:1; width:100%; max-width:480px; }
+
+  .ticket{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    box-shadow:0 30px 60px -30px rgba(120,80,40,.35), 0 2px 0 rgba(255,255,255,.6) inset;
+    overflow:hidden;
+  }
+
+  .ticket-head{
+    padding:34px 34px 22px;
+    background:linear-gradient(180deg, var(--card-2), var(--card));
+    border-bottom:1.5px dashed var(--border);
+    position:relative;
+  }
+  .badge{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:12px; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--accent-dark); background:var(--accent-soft);
+    border:1px solid #E9C2AE; padding:5px 11px; border-radius:100px;
+    margin-bottom:16px; font-weight:600; font-family:'IBM Plex Mono', monospace;
+  }
+  h1{
+    font-family:'Fraunces', serif; font-weight:600; font-size:32px;
+    line-height:1.15; margin:0 0 8px; color:var(--ink);
+  }
+  .sub{ color:var(--ink-muted); font-size:14.5px; line-height:1.6; max-width:360px; }
+
+  .notch{ position:absolute; width:22px; height:22px; border-radius:50%; background:var(--bg-2); bottom:-11px; }
+  .notch.left{ left:-11px; } .notch.right{ right:-11px; }
+
+  form{ padding:30px 34px 34px; display:flex; flex-direction:column; gap:22px; }
+
+  .field label{ display:block; font-size:13px; font-weight:600; color:var(--ink); margin-bottom:8px; }
+  .field label .opt{ color:var(--ink-muted); font-weight:400; }
+
+  input[type="text"], input[type="password"]{
+    width:100%; padding:13px 15px; font-size:15px; font-family:'Inter', sans-serif;
+    background:#FFFDFA; border:1.5px solid var(--border); border-radius:12px;
+    color:var(--ink); outline:none; transition:border-color .2s ease, box-shadow .2s ease;
+  }
+  input[type="text"]::placeholder, input[type="password"]::placeholder{ color:#C9B79C; }
+  input[type="text"]:focus, input[type="password"]:focus{
+    border-color:var(--accent); box-shadow:0 0 0 4px rgba(201,123,99,.15);
+  }
+
+  .pw-wrap{ position:relative; }
+  .pw-toggle{
+    position:absolute; right:12px; top:50%; transform:translateY(-50%);
+    background:none; border:none; cursor:pointer; font-size:12.5px;
+    color:var(--ink-muted); font-family:'Inter'; font-weight:600; padding:4px 6px;
+  }
+  .pw-toggle:hover{ color:var(--accent-dark); }
+
+  .dish-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .dish{ position:relative; }
+  .dish input{ position:absolute; opacity:0; width:100%; height:100%; margin:0; cursor:pointer; inset:0; }
+  .dish .chip{
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+    padding:14px 6px; border:1.5px solid var(--border); border-radius:14px;
+    background:#FFFDFA; text-align:center; transition:all .18s ease;
+  }
+  .dish .chip .emoji{ font-size:22px; }
+  .dish .chip .name{ font-size:12.5px; font-weight:600; color:var(--ink-muted); }
+  .dish input:checked + .chip{ background:var(--sage-soft); border-color:var(--sage); box-shadow:0 0 0 3px rgba(140,162,133,.18); }
+  .dish input:checked + .chip .name{ color:#4F6A49; }
+  .dish input:focus-visible + .chip{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  .drop{
+    border:1.5px dashed var(--border); border-radius:14px; background:#FFFDFA;
+    padding:20px; text-align:center; cursor:pointer; position:relative;
+    transition:border-color .2s ease, background .2s ease;
+  }
+  .drop:hover{ border-color:var(--accent); background:#FEF6EE; }
+  .drop input[type="file"]{ position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+  .drop .icon{ font-size:22px; margin-bottom:6px; }
+  .drop .txt{ font-size:13.5px; color:var(--ink-muted); }
+  .drop .txt b{ color:var(--accent-dark); }
+  .filename{ margin-top:10px; font-size:12.5px; color:var(--sage); font-weight:600; display:none; }
+  .filehint{ margin-top:8px; font-size:11.5px; color:var(--ink-muted); line-height:1.5; }
+
+  .agree{ display:flex; align-items:flex-start; gap:10px; font-size:13.5px; color:var(--ink-muted); line-height:1.5; }
+  .agree input{ margin-top:2px; width:17px; height:17px; accent-color:var(--accent); cursor:pointer; flex-shrink:0; }
+  .agree a{ color:var(--accent-dark); text-decoration:underline; text-underline-offset:2px; }
+  .error-text{ font-size:12.5px; color:var(--danger); margin-top:6px; display:none; }
+
+  button[type="submit"]{
+    margin-top:6px; padding:15px; border:none; border-radius:14px;
+    background:linear-gradient(180deg, var(--accent), var(--accent-dark));
+    color:#FFF7F0; font-family:'Fraunces', serif; font-weight:600; font-size:16px;
+    cursor:pointer; box-shadow:0 12px 24px -10px rgba(176,100,77,.55);
+    transition:transform .15s ease, box-shadow .15s ease;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  button[type="submit"]:hover{ transform:translateY(-1px); box-shadow:0 16px 28px -10px rgba(176,100,77,.6); }
+  button[type="submit"]:active{ transform:translateY(0); }
+  button[type="submit"]:disabled{ opacity:.6; cursor:default; transform:none; }
+  .spinner{
+    width:14px; height:14px; border-radius:50%;
+    border:2px solid rgba(255,247,240,.4); border-top-color:#FFF7F0;
+    animation:spin .7s linear infinite; display:none;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  .meta{ text-align:center; font-size:11.5px; color:var(--ink-muted); font-family:'IBM Plex Mono', monospace; letter-spacing:.01em; margin-top:2px; }
+  .meta code{ background:var(--card-2); border:1px solid var(--border); border-radius:6px; padding:1px 6px; color:var(--accent-dark); }
+
+  /* ---------- JSON preview panel ---------- */
+  .preview{
+    position:relative; z-index:1; width:100%; max-width:420px;
+    background:var(--ink-dark); border-radius:var(--radius);
+    box-shadow:0 30px 60px -30px rgba(60,40,20,.5);
+    overflow:hidden; align-self:flex-start; position:sticky; top:48px;
+  }
+  .preview-bar{
+    display:flex; align-items:center; gap:8px; padding:12px 16px;
+    background:#241B14; border-bottom:1px solid #3B2E22;
+  }
+  .preview-bar span{ width:9px; height:9px; border-radius:50%; background:#4A3A2C; }
+  .preview-bar .label{
+    margin-left:8px; font-family:'IBM Plex Mono', monospace; font-size:12px; color:#C9B79C;
+  }
+  .preview pre{
+    margin:0; padding:20px 20px 22px; font-family:'IBM Plex Mono', monospace;
+    font-size:13px; line-height:1.75; color:#F0E4D4; overflow-x:auto;
+    white-space:pre-wrap; word-break:break-word;
+  }
+  .preview pre .k{ color:#E3A88B; }
+  .preview pre .s{ color:#A8C79E; }
+  .preview pre .n{ color:#8EAAC9; }
+  .preview pre .b64{ color:#7C8A9E; font-style:italic; }
+  .status-line{
+    padding:12px 20px; border-top:1px dashed #3B2E22; font-family:'IBM Plex Mono', monospace;
+    font-size:12px; color:#C9B79C; display:none;
+  }
+  .status-line.ok{ color:#A8C79E; }
+  .status-line.err{ color:#E3A08C; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="ticket">
+    <div class="ticket-head">
+      <div class="notch left"></div><div class="notch right"></div>
+      <div class="badge">✦ application/json</div>
+      <h1>Заполните карточку</h1>
+      <div class="sub">Форма отправляется не как обычная HTML-форма, а через <code style="font-family:'IBM Plex Mono',monospace;color:var(--accent-dark)">fetch()</code> с телом в формате JSON.</div>
+    </div>
+
+    <form id="profileForm" novalidate>
+
+      <div class="field">
+        <label for="username">Логин</label>
+        <input type="text" id="username" name="username" placeholder="например, anna_petrova" required autocomplete="username">
+      </div>
+
+      <div class="field">
+        <label for="password">Пароль</label>
+        <div class="pw-wrap">
+          <input type="password" id="password" name="password" placeholder="не меньше 8 символов" required minlength="8" autocomplete="new-password">
+          <button type="button" class="pw-toggle" id="pwToggle">показать</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Любимое блюдо <span class="opt">(можно выбрать несколько)</span></label>
+        <div class="dish-grid">
+          <label class="dish">
+            <input type="checkbox" name="dish" value="pasta">
+            <span class="chip"><span class="emoji">🍝</span><span class="name">Паста</span></span>
+          </label>
+          <label class="dish">
+            <input type="checkbox" name="dish" value="salad">
+            <span class="chip"><span class="emoji">🥗</span><span class="name">Салат</span></span>
+          </label>
+          <label class="dish">
+            <input type="checkbox" name="dish" value="dessert">
+            <span class="chip"><span class="emoji">🍰</span><span class="name">Десерт</span></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="avatar">Фотография <span class="opt">(JPG или PNG)</span></label>
+        <div class="drop" id="dropZone">
+          <input type="file" id="avatar" name="avatar" accept="image/jpeg,image/png">
+          <div class="icon">📷</div>
+          <div class="txt"><b>Выберите файл</b> или перетащите его сюда</div>
+          <div class="filename" id="filename"></div>
+        </div>
+        <div class="filehint">В JSON нет формата для бинарных файлов — картинка кодируется в base64 прямо внутри тела запроса.</div>
+      </div>
+
+      <label class="agree">
+        <input type="checkbox" name="agree" id="agree" required>
+        <span>Я принимаю <a href="#">правила сервиса</a> и согласен(на) на обработку данных.</span>
+      </label>
+      <div class="error-text" id="agreeError">Нужно принять правила, чтобы продолжить</div>
+
+      <button type="submit" id="submitBtn">
+        <span class="spinner" id="spinner"></span>
+        <span id="btnText">Отправить анкету</span>
+      </button>
+      <div class="meta">fetch → <code>input.php</code> · Content-Type: application/json</div>
+    </form>
+  </div>
+</div>
+
+<div class="preview">
+  <div class="preview-bar"><span></span><span></span><span></span><div class="label">тело запроса (live preview)</div></div>
+  <pre id="jsonPreview">{}</pre>
+  <div class="status-line" id="statusLine"></div>
+</div>
+
+<script>
+  const form = document.getElementById('profileForm');
+  const usernameEl = document.getElementById('username');
+  const passwordEl = document.getElementById('password');
+  const agreeEl = document.getElementById('agree');
+  const avatarInput = document.getElementById('avatar');
+  const jsonPreview = document.getElementById('jsonPreview');
+  const statusLine = document.getElementById('statusLine');
+  const submitBtn = document.getElementById('submitBtn');
+  const spinner = document.getElementById('spinner');
+  const btnText = document.getElementById('btnText');
+
+  let avatarBase64 = null;
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  }
+
+  function currentPayload(){
+    const dishes = [...document.querySelectorAll('input[name="dish"]:checked')].map(el => el.value);
+    return {
+      username: usernameEl.value,
+      password: passwordEl.value ? '•'.repeat(Math.min(passwordEl.value.length, 12)) : '',
+      dish: dishes,
+      agree: agreeEl.checked,
+      avatar: avatarBase64 ? avatarBase64.slice(0, 28) + '…' : null
+    };
+  }
+
+  function renderPreview(){
+    const p = currentPayload();
+    const lines = [
+      '{',
+      `  <span class="k">"username"</span>: <span class="s">"${escapeHtml(p.username)}"</span>,`,
+      `  <span class="k">"password"</span>: <span class="s">"${escapeHtml(p.password)}"</span>,`,
+      `  <span class="k">"dish"</span>: [${p.dish.map(d => `<span class="s">"${d}"</span>`).join(', ')}],`,
+      `  <span class="k">"agree"</span>: <span class="n">${p.agree}</span>,`,
+      `  <span class="k">"avatar"</span>: ${p.avatar ? `<span class="b64">"${escapeHtml(p.avatar)}"</span>` : '<span class="n">null</span>'}`,
+      '}'
+    ];
+    jsonPreview.innerHTML = lines.join('\n');
+  }
+
+  [usernameEl, passwordEl, agreeEl].forEach(el => el.addEventListener('input', renderPreview));
+  document.querySelectorAll('input[name="dish"]').forEach(el => el.addEventListener('change', renderPreview));
+
+  // показать/скрыть пароль
+  document.getElementById('pwToggle').addEventListener('click', () => {
+    const isPw = passwordEl.type === 'password';
+    passwordEl.type = isPw ? 'text' : 'password';
+    document.getElementById('pwToggle').textContent = isPw ? 'скрыть' : 'показать';
+  });
+
+  // файл -> base64
+  const filenameEl = document.getElementById('filename');
+  avatarInput.addEventListener('change', () => {
+    const file = avatarInput.files[0];
+    if(!file){ avatarBase64 = null; filenameEl.style.display = 'none'; renderPreview(); return; }
+    filenameEl.textContent = '✓ ' + file.name;
+    filenameEl.style.display = 'block';
+    const reader = new FileReader();
+    reader.onload = () => { avatarBase64 = reader.result; renderPreview(); };
+    reader.readAsDataURL(file);
+  });
+
+  const dropZone = document.getElementById('dropZone');
+  ['dragenter','dragover'].forEach(evt =>
+    dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.style.borderColor = 'var(--accent)'; })
+  );
+  ['dragleave','drop'].forEach(evt =>
+    dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.style.borderColor = 'var(--border)'; })
+  );
+
+  const agreeError = document.getElementById('agreeError');
+  agreeEl.addEventListener('change', () => { if(agreeEl.checked) agreeError.style.display = 'none'; });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if(!agreeEl.checked){
+      agreeError.style.display = 'block';
+      agreeEl.focus();
+      return;
+    }
+    agreeError.style.display = 'none';
+
+    const dishes = [...document.querySelectorAll('input[name="dish"]:checked')].map(el => el.value);
+    const payload = {
+      username: usernameEl.value,
+      password: passwordEl.value,
+      dish: dishes,
+      agree: agreeEl.checked,
+      avatar: avatarBase64 // data:image/...;base64,...  или null
+    };
+
+    submitBtn.disabled = true;
+    spinner.style.display = 'inline-block';
+    btnText.textContent = 'Отправляем…';
+    statusLine.style.display = 'none';
+
+    try{
+      const res = await fetch('http://localhost:8000/input.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      statusLine.style.display = 'block';
+      if(res.ok){
+        statusLine.className = 'status-line ok';
+        statusLine.textContent = `✓ HTTP ${res.status} — сервер принял JSON`;
+      } else {
+        statusLine.className = 'status-line err';
+        statusLine.textContent = `✕ HTTP ${res.status} — input.php вернул ошибку`;
+      }
+    } catch(err){
+      statusLine.style.display = 'block';
+      statusLine.className = 'status-line err';
+      statusLine.textContent = '✕ Не удалось достучаться до input.php (сеть/CORS)';
+    } finally {
+      submitBtn.disabled = false;
+      spinner.style.display = 'none';
+      btnText.textContent = 'Отправить анкету';
+    }
+  });
+
+  renderPreview();
+</script>
+
+</body>
+</html>
