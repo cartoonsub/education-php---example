@@ -213,7 +213,7 @@
       <div class="body-preview">
         <div><b>Host:</b> урок-php.ru</div>
         <div><b>Content-Type:</b> text/lesson; уровень=средний</div>
-        <div><b>Content-Length:</b> 10 слайдов</div>
+        <div><b>Content-Length:</b> 12 слайдов</div>
       </div>
     </div>
     <div class="scroll-hint"><span>прокрутите вниз</span><span class="arrow">↓</span></div>
@@ -343,6 +343,32 @@ if ($_SERVER[<span class="s">'REQUEST_METHOD'</span>] === <span class="s">'POST'
     </div>
   </section>
 
+  <!-- SLIDE 7B — Массивы в именах полей -->
+  <section id="s7b">
+    <div class="inner reveal">
+      <div class="hdr-line"><span class="k">X-Topic:</span> массивы-в-форме</div>
+      <h2>Один параметр — несколько значений</h2>
+      <p class="lede">Если несколько полей формы имеют одинаковое имя с <code class="inline">[]</code> на конце, PHP автоматически соберёт их в массив — не нужно вручную парсить строку.</p>
+      <div class="term">
+        <div class="term-bar"><span></span><span></span><span></span><div class="label">index.html · чекбоксы</div></div>
+        <pre>&lt;label&gt;&lt;input type=<span class="s">"checkbox"</span> name=<span class="s">"dish[]"</span> value=<span class="s">"pasta"</span>&gt; Паста&lt;/label&gt;
+&lt;label&gt;&lt;input type=<span class="s">"checkbox"</span> name=<span class="s">"dish[]"</span> value=<span class="s">"salad"</span>&gt; Салат&lt;/label&gt;
+&lt;label&gt;&lt;input type=<span class="s">"checkbox"</span> name=<span class="s">"dish[]"</span> value=<span class="s">"dessert"</span>&gt; Десерт&lt;/label&gt;</pre>
+      </div>
+      <div class="term">
+        <div class="term-bar"><span></span><span></span><span></span><div class="label">input.php</div></div>
+        <pre>$dishes = $_POST[<span class="s">'dish'</span>] ?? []; <span class="c">// квадратные скобки в имени убираются автоматически</span>
+print_r($dishes);
+<span class="c">// Array ( [0] => pasta [1] => dessert )</span>
+<span class="c">// если ни один чекбокс не отмечен — ключа 'dish' в $_POST не будет вовсе</span></pre>
+      </div>
+      <div class="card" style="margin-top:20px;">
+        <h3>То же самое работает и с файлами</h3>
+        <p>Синтаксис <code class="inline">name="pictures[]"</code> в поле с <code class="inline">type="file"</code> собирает несколько файлов в один массив <code class="inline">$_FILES['pictures']</code> — но со своей структурой: каждый ключ (<code class="inline">name</code>, <code class="inline">tmp_name</code>, <code class="inline">error</code>...) сам становится массивом, индексированным по номеру файла. Перебирать нужно через <code class="inline">foreach ($_FILES['pictures']['error'] as $key => $error)</code>, а не напрямую.</p>
+      </div>
+    </div>
+  </section>
+
   <!-- SLIDE 8 — $_FILES anatomy + error codes -->
   <section id="s8">
     <div class="inner reveal">
@@ -410,6 +436,36 @@ $safeName = uniqid(<span class="s">'img_'</span>, true) . <span class="s">'.jpg'
         <li><span class="box">✓</span> Хранить файлы вне публичного корня или запретить исполнение скриптов</li>
         <li><span class="box">✓</span> Только теперь — <code class="inline">move_uploaded_file()</code></li>
       </ul>
+      <div class="card" style="margin-top:30px; border-color:var(--accent);">
+        <h3>Домашнее задание</h3>
+        <p style="color:var(--text)">Сделать форму загрузки аватара с проверкой реального типа файла (JPEG/PNG), генерацией безопасного имени и сохранением пути в «базу данных» (можно эмулировать массивом на первых порах).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 11 — ИТОГ УРОКА -->
+  <section id="s11">
+    <div class="inner reveal">
+      <div class="hdr-line success"><span class="k">Summary:</span> итог-урока</div>
+      <h2>Что мы сегодня узнали</h2>
+      <div class="grid2">
+        <div class="card">
+          <h3>📮 Тело вместо URL</h3>
+          <p>POST передаёт данные в теле запроса, а не в URL — подходит для чувствительных и больших данных.</p>
+        </div>
+        <div class="card">
+          <h3>🏷️ Content-Type — ключ ко всему</h3>
+          <p>Именно он определяет, как сервер разберёт тело запроса. Это центральная идея всей темы.</p>
+        </div>
+        <div class="card">
+          <h3>⚠️ $_POST молчит про JSON</h3>
+          <p><code class="inline">$_POST</code> работает для форм, но не работает для JSON — там нужен <code class="inline">php://input</code>.</p>
+        </div>
+        <div class="card warn">
+          <h3>🛡️ Файл — потенциальная уязвимость</h3>
+          <p>Любая загрузка файла от пользователя — риск. Никогда не доверяйте <code class="inline">name</code> и <code class="inline">type</code> из <code class="inline">$_FILES</code> напрямую.</p>
+        </div>
+      </div>
     </div>
   </section>
 
